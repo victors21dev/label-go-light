@@ -8,6 +8,8 @@ import { EtiquetaForm } from '@/components/EtiquetaForm'
 import { EtiquetaPreview } from '@/components/EtiquetaPreview'
 import { SetorManager } from '@/components/SetorManager'
 
+import { EtiquetasCharts } from './components/etiquetas-charts'
+
 import type { Etiqueta, Setor } from '@/types/etiquetas'
 
 export default function Page() {
@@ -39,6 +41,7 @@ export default function Page() {
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-muted p-6">
             <div className="w-full max-w-6xl">
+                <EtiquetasCharts fila={fila} />
                 <Card>
                     <CardHeader>
                         <CardTitle>🖨️ Gerador de Etiquetas</CardTitle>

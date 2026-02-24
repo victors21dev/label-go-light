@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { useReactToPrint } from 'react-to-print'
 import './App.css'
 
 type TipoRefeicao = 'Café da manhã' | 'Almoço' | 'Janta'
@@ -12,6 +13,8 @@ type Etiqueta = {
 }
 
 export default function App() {
+    const printRef = useRef<HTMLDivElement>(null)
+
     const [data, setData] = useState('')
     const [setor, setSetor] = useState('')
     const [coordenador, setCoordenador] = useState('')
@@ -20,36 +23,41 @@ export default function App() {
 
     const [fila, setFila] = useState<Etiqueta[]>([])
 
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: 'etiquetas',
+    })
+
     function adicionarFila() {
-        if (!data || !setor || !coordenador) {
-            alert('Preencha todos os campos!')
+        if (!data || !setor || !coordenador || quantidade < 1) {
+            alert('Preencha todos os campos corretamente!')
             return
         }
 
-        const novas: Etiqueta[] = Array.from({ length: quantidade }).map(
-            (_, i) => ({
-                id: Date.now() + i,
-                data,
-                setor,
-                coordenador,
-                tipo,
-            }),
-        )
+        const novas = Array.from({ length: quantidade }).map((_, i) => ({
+            id: Date.now() + i,
+            data,
+            setor,
+            coordenador,
+            tipo,
+        }))
 
         setFila((prev) => [...prev, ...novas])
     }
 
-    function imprimirTudo() {
-        window.print()
+    function limparFila() {
+        if (confirm('Deseja limpar todas as etiquetas da fila?')) {
+            setFila([])
+        }
     }
 
     return (
-        <div className="container">
-            <h1>🖨️ Gerador de Etiquetas</h1>
+        <div className="app">
+            <aside className="sidebar">
+                <h1>🖨️ Gerador de Etiquetas</h1>
 
-            <div className="form">
                 <label>
-                    Data:
+                    Data
                     <input
                         type="date"
                         value={data}
@@ -58,7 +66,7 @@ export default function App() {
                 </label>
 
                 <label>
-                    Setor:
+                    Setor
                     <input
                         value={setor}
                         onChange={(e) => setSetor(e.target.value)}
@@ -66,7 +74,7 @@ export default function App() {
                 </label>
 
                 <label>
-                    Coordenador:
+                    Coordenador
                     <input
                         value={coordenador}
                         onChange={(e) => setCoordenador(e.target.value)}
@@ -74,7 +82,7 @@ export default function App() {
                 </label>
 
                 <label>
-                    Tipo:
+                    Tipo
                     <select
                         value={tipo}
                         onChange={(e) =>
@@ -88,7 +96,7 @@ export default function App() {
                 </label>
 
                 <label>
-                    Quantidade:
+                    Quantidade
                     <input
                         type="number"
                         min={1}
@@ -97,26 +105,34 @@ export default function App() {
                     />
                 </label>
 
-                <button onClick={adicionarFila}>Adicionar à fila</button>
-                <button className="print" onClick={imprimirTudo}>
-                    Imprimir tudo
-                </button>
-            </div>
+                <div className="buttons">
+                    <button onClick={adicionarFila}>Adicionar</button>
+                    <button className="secondary" onClick={limparFila}>
+                        Limpar fila
+                    </button>
+                    <button className="print" onClick={handlePrint}>
+                        Imprimir
+                    </button>
+                </div>
+            </aside>
 
-            <h2>Fila de impressão ({fila.length})</h2>
+            <main className="preview">
+                <h2>Fila de etiquetas ({fila.length})</h2>
 
-            <div className="etiquetas">
-                {fila.map((e) => (
-                    <div className="etiqueta" key={e.id}>
-                        <strong>{e.tipo}</strong>
-                        <span>
-                            {new Date(e.data).toLocaleDateString('pt-BR')}
-                        </span>
-                        <span>Setor: {e.setor}</span>
-                        <span>Coord.: {e.coordenador}</span>
-                    </div>
-                ))}
-            </div>
+                <div ref={printRef} className="etiquetas">
+                    {fila.map((e) => (
+                        <div className="etiqueta" key={e.id}>
+                            <div className="tipo">{e.tipo}</div>
+                            <div className="linha">
+                                📅{' '}
+                                {new Date(e.data).toLocaleDateString('pt-BR')}
+                            </div>
+                            <div className="linha">🏷️ {e.setor}</div>
+                            <div className="linha">👤 {e.coordenador}</div>
+                        </div>
+                    ))}
+                </div>
+            </main>
         </div>
     )
 }
